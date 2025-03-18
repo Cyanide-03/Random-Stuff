@@ -22,3 +22,7 @@ void initopenGL(){
     glewInit();
 }
 
+void update(){
+    ballSpeed+=acc*dt;
+    ballY+=ballSpeed*dt+0.5f*acc*dt*dt;
+}
