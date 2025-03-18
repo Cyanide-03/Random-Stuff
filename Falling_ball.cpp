@@ -25,6 +25,11 @@ void initopenGL(){
 void update(){
     ballSpeed+=acc*dt;
     ballY+=ballSpeed*dt+0.5f*acc*dt*dt;
+
+    if(ballY<=-0.9f){ // Ball hits the ground
+        ballSpeed*=-0.8f;
+        ballY=-0.9f;
+    }
 }
 
 void render(){
