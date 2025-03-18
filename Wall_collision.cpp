@@ -50,6 +50,12 @@ void update(){
     if(ballY<=-0.9f){ // Ball hits the ground
         ballVy*=-0.8f;
         ballY=-0.9f;
+
+        ballVx *= friction;
+
+        if(abs(ballVx)<0.001f){
+            ballVx=0.0f;
+        }
     }
 }
 
