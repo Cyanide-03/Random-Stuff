@@ -4,7 +4,7 @@
 #include <math.h>
 
 float ballY=0.5f;
-float ballSpeed=0.0f;
+float ballSpeed=4.0f;
 float acc=-9.8f;
 float dt=0.002f;
 
