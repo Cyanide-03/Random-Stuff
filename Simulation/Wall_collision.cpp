@@ -37,7 +37,7 @@ void take_input(){
         std::cin>>ball.vy;
 
         ball.mass=rand()%10+1;
-        ball.radius=0.2f+0.01f*ball.mass;
+        ball.radius=0.05f+0.01f*ball.mass;
 
         balls.push_back(ball);
     }
@@ -84,24 +84,24 @@ void update(){
         ball.vy+=acc*dt;
         ball.x+=ball.vx*dt;
 
-        if(ball.x>=0.9f){ // Ball hits the right wall
+        if(ball.x+ball.radius>=1.0f){ // Ball hits the right wall
             ball.vx*=-0.8f;
-            ball.x=0.9f;
+            ball.x=1.0f-ball.radius;
         }
 
-        if(ball.x<=-0.9f){ // Ball hits the left wall
+        if(ball.x-ball.radius<=-1.0f){ // Ball hits the left wall
             ball.vx*=-0.8f;
-            ball.x=-0.9f;
+            ball.x=-1.0f+ball.radius;
         }
 
-        if(ball.y>=0.9f){ // Ball hits the ceiling
+        if(ball.y+ball.radius>=1.0f){ // Ball hits the ceiling
             ball.vy*=-0.8f;
-            ball.y=0.9f;
+            ball.y=1.0f-ball.radius;
         }
 
-        if(ball.y<=-0.9f){ // Ball hits the ground
+        if(ball.y-ball.radius<=-1.0f){ // Ball hits the ground
             ball.vy*=-0.8f;
-            ball.y=-0.9f;
+            ball.y=-1.0f+ball.radius;
 
             ball.vx *= friction;
 
