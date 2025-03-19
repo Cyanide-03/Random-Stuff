@@ -18,23 +18,18 @@ typedef struct Ball{
 std::vector<Ball> balls;
 
 void take_input(){
+    srand(time(0));
     int numBalls;
     std::cout<<"Enter the number of balls: ";
     std::cin>>numBalls;
 
     for(int i=1;i<=numBalls;i++){
         Ball ball;
-        std::cout<<"Enter initial X position (-0.9 to 0.9) for ball "<<i<<": ";
-        std::cin>>ball.x;
 
-        std::cout<<"Enter initial Y position (-0.9 to 0.9) for ball "<<i<<": ";
-        std::cin>>ball.y;
-
-        std::cout<<"Enter initial velocity in X direction for ball "<<i<<": ";
-        std::cin>>ball.vx;
-
-        std::cout<<"Enter initial velocity in Y direction for ball "<<i<<": ";
-        std::cin>>ball.vy;
+        ball.x=(rand()%1800-900)/1000.0f; // Random position between -0.9 and 0.9
+        ball.y=(rand()%1800-900)/1000.0f; // Random position between -0.9 and 0.9
+        ball.vx=(rand()%2000-1000)/250.0f; // Random velocity between -10 and 10
+        ball.vy=(rand()%2000-1000)/250.0f; // Random velocity between -10 and 10
 
         ball.mass=rand()%10+1;
         ball.radius=0.05f+0.01f*ball.mass;
@@ -59,22 +54,35 @@ void initopenGL(){
 }
 
 void resolve_balls_collision(Ball *ball1,Ball *ball2){
-    float distance=sqrt(pow((ball1->x-ball2->x),2)+pow((ball1->y-ball2->y),2));
-    if(distance<=ball1->radius+ball2->radius){ // Collision Detected
-        float v1_new=((ball1->mass-ball2->mass)*ball1->vy+2*ball2->mass*ball2->vy)/(ball1->mass+ball2->mass);
-        float v2_new=((ball2->mass-ball1->mass)*ball2->vy+2*ball1->mass*ball1->vy)/(ball1->mass+ball2->mass);
+    float dx=ball2->x-ball1->x;
+    float dy=ball2->y-ball1->y;
+    float distance=sqrt(pow(dx,2)+pow(dy,2));
 
-        ball1->vy=v1_new;
-        ball2->vy=v2_new;
+    if(distance<=ball1->radius+ball2->radius){ // Collision Detected
+        float sin_theta=dy/distance;
+        float cos_theta=dx/distance;
+
+        float v1n=ball1->vx*cos_theta+ball1->vy*sin_theta; // Normal velocity of ball1
+        float v2n=ball2->vx*cos_theta+ball2->vy*sin_theta; // Normal velocity of ball2
+        float v1t=ball1->vy*cos_theta-ball1->vx*sin_theta; // Tangential velocity of ball1
+        float v2t=ball2->vy*cos_theta-ball2->vx*sin_theta; // Tangential velocity of ball2
+
+        float v1n_new=((ball1->mass-ball2->mass)*v1n+2*ball2->mass*v2n)/(ball1->mass+ball2->mass);
+        float v2n_new=((ball2->mass-ball1->mass)*v2n+2*ball1->mass*v1n)/(ball1->mass+ball2->mass);
+
+        ball1->vx=v1n_new*cos_theta+v1t*sin_theta;
+        ball2->vx=v2n_new*cos_theta+v2t*sin_theta;
+        ball1->vy=v1n_new*sin_theta+v1t*cos_theta;
+        ball2->vy=v2n_new*sin_theta+v2t*cos_theta;
 
         float overlap=(ball1->radius+ball2->radius-distance)/2.0f;
-        if(ball1->y>ball2->y){
-            ball1->y+=overlap;
-            ball2->y-=overlap;
-        }else{
-            ball1->y-=overlap;
-            ball2->y+=overlap;
-        }
+        float movex=overlap*cos_theta;
+        float movey=overlap*sin_theta;
+
+        ball1->x-=movex;
+        ball2->x+=movex;
+        ball1->y-=movey;
+        ball2->y+=movey;
     }
 }
 
@@ -133,7 +141,7 @@ void circle_render(Ball *ball){
 
 void ball_render(){
     glClear(GL_COLOR_BUFFER_BIT);
-    glColor3f(0.0f,1.0f,0.0f);
+    glColor3f(0.1f,0.6f,0.3f);
     for(auto ball:balls){
         circle_render(&ball);
     }
