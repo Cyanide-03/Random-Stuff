@@ -11,6 +11,8 @@ float friction=0.99f;
 typedef struct Ball{
     float x,y;
     float vx,vy;
+    float mass;
+    float radius;
 }Ball;
 
 std::vector<Ball> balls;
@@ -22,10 +24,10 @@ void take_input(){
 
     for(int i=1;i<=numBalls;i++){
         Ball ball;
-        std::cout<<"Enter initial X position (-0.8 to 0.8) for ball "<<i<<": ";
+        std::cout<<"Enter initial X position (-0.9 to 0.9) for ball "<<i<<": ";
         std::cin>>ball.x;
 
-        std::cout<<"Enter initial Y position (-0.8 to 0.8) for ball "<<i<<": ";
+        std::cout<<"Enter initial Y position (-0.9 to 0.9) for ball "<<i<<": ";
         std::cin>>ball.y;
 
         std::cout<<"Enter initial velocity in X direction for ball "<<i<<": ";
@@ -33,6 +35,9 @@ void take_input(){
 
         std::cout<<"Enter initial velocity in Y direction for ball "<<i<<": ";
         std::cin>>ball.vy;
+
+        ball.mass=rand()%10+1;
+        ball.radius=0.2f+0.01f*ball.mass;
 
         balls.push_back(ball);
     }
@@ -53,11 +58,30 @@ void initopenGL(){
     glewInit();
 }
 
+void resolve_balls_collision(Ball *ball1,Ball *ball2){
+    float distance=sqrt(pow((ball1->x-ball2->x),2)+pow((ball1->y-ball2->y),2));
+    if(distance<=ball1->radius+ball2->radius){ // Collision Detected
+        float v1_new=((ball1->mass-ball2->mass)*ball1->vy+2*ball2->mass*ball2->vy)/(ball1->mass+ball2->mass);
+        float v2_new=((ball2->mass-ball1->mass)*ball2->vy+2*ball1->mass*ball1->vy)/(ball1->mass+ball2->mass);
+
+        ball1->vy=v1_new;
+        ball2->vy=v2_new;
+
+        float overlap=(ball1->radius+ball2->radius-distance)/2.0f;
+        if(ball1->y>ball2->y){
+            ball1->y+=overlap;
+            ball2->y-=overlap;
+        }else{
+            ball1->y-=overlap;
+            ball2->y+=overlap;
+        }
+    }
+}
+
 void update(){
     for(auto &ball:balls){
-        ball.vy+=acc*dt;
-
         ball.y+=ball.vy*dt+0.5f*acc*dt*dt;
+        ball.vy+=acc*dt;
         ball.x+=ball.vx*dt;
 
         if(ball.x>=0.9f){ // Ball hits the right wall
@@ -86,16 +110,21 @@ void update(){
             }
         }
     }
+
+    for(int i=0;i<balls.size();i++){
+        for(int j=i+1;j<balls.size();j++){
+            resolve_balls_collision(&balls[i], &balls[j]);
+        }
+    }
 }
 
 void circle_render(Ball *ball){
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(ball->x, ball->y);
-    float radius=0.1f;
     for(int i=0;i<=100;i++){
         float angle=2*M_PI*i/100;
-        float x=radius*cos(angle);
-        float y=radius*sin(angle);
+        float x=ball->radius*cos(angle);
+        float y=ball->radius*sin(angle);
         glVertex2f(ball->x+x,ball->y+y);
     }
 
