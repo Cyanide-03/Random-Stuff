@@ -120,8 +120,10 @@ void update(){
     }
 
     for(int i=0;i<balls.size();i++){
-        for(int j=i+1;j<balls.size();j++){
-            resolve_balls_collision(&balls[i], &balls[j]);
+        for(int j=0;j<balls.size();j++){
+            if(i!=j){
+                resolve_balls_collision(&balls[i], &balls[j]);
+            }
         }
     }
 }
