@@ -5,7 +5,7 @@ import pickle as pkl
 
 # Parameters
 EPS = 0.1
-ALPHA = 0.1
+ALPHA = 0.2
 GAMMA = 0.9
 NUM_EPISODES = 500
 
