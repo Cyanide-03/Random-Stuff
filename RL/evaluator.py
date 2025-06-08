@@ -11,7 +11,7 @@ NUM_EPISODES = 5
 
 env = gym.make('CliffWalking-v0')
 
-q_table=pkl.load(open("sarsa_q_table.pkl", "rb"))
+q_table=pkl.load(open("q_learning_q_table.pkl", "rb"))
 
 # Handy functions for Visuals
 def initialize_frame():
@@ -53,7 +53,7 @@ def put_agent(img, state):
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 0, 0), thickness=2)
     return img
 
-def policy(state,explore_rate):
+def policy(state,explore_rate=0.0):
     action=int(np.argmax(q_table[state]))
     if np.random.random() <= explore_rate:
         action=np.random.randint(0,4)
@@ -61,10 +61,10 @@ def policy(state,explore_rate):
 
 for episode in range(10):
     terminated=False
-    state,_=env.reset()
-    action=policy(state,EPS)
     total_reward=0
     episode_length=0
+
+    state,_=env.reset()
 
     while not terminated:
         frame=initialize_frame()
@@ -72,12 +72,13 @@ for episode in range(10):
         cv2.imshow("Cliff Walking",frame)
         cv2.waitKey(250)
 
+        action=policy(state,EPS)
         next_state,reward,terminated,truncated,info=env.step(action)    
-        next_action=policy(next_state,EPS)
+        next_action=policy(next_state)
         q_table[state][action]+=ALPHA*(reward+GAMMA*q_table[next_state][next_action]-q_table[state][action])
 
         state=next_state
-        action=next_action
+        # action=next_action
 
         total_reward += reward
         episode_length += 1

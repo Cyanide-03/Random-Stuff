@@ -13,7 +13,7 @@ env = gym.make('CliffWalking-v0')
 
 q_table=np.zeros((48,4))
 
-def policy(state,explore_rate):
+def policy(state,explore_rate=0.0):
     action=int(np.argmax(q_table[state]))
     if np.random.random() <= explore_rate:
         action=np.random.randint(0,4)
@@ -21,12 +21,13 @@ def policy(state,explore_rate):
 
 for episode in range(NUM_EPISODES):
     terminated=False
-    state,_=env.reset()
-    action=policy(state,EPS)
     total_reward=0
     episode_length=0
 
+    state,_=env.reset()
+
     while not terminated:
+        action=policy(state,EPS)
         next_state,reward,terminated,truncated,info=env.step(action)    
         next_action=policy(next_state,EPS)
         q_table[state][action]+=ALPHA*(reward+GAMMA*q_table[next_state][next_action]-q_table[state][action])
