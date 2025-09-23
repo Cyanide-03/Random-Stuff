@@ -2,3 +2,6 @@
 RL/venv/
 RL/**/__pycache__/
 RL/**/*.pyc
+AI/venv/
+AI/**/__pycache__/
+AI/**/*.pyc
