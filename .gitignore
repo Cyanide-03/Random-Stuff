@@ -5,3 +5,4 @@ RL/**/*.pyc
 AI/venv/
 AI/**/__pycache__/
 AI/**/*.pyc
+AI/tictactoe/OpenSans-Regular.ttf
