@@ -138,7 +138,6 @@ class Sentence():
             self.cells.remove(cell)
         # raise NotImplementedError
 
-
 class MinesweeperAI():
     """
     Minesweeper game player
@@ -193,7 +192,45 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
-        raise NotImplementedError
+        self.moves_made.add(cell)
+        self.mark_safe(cell)
+
+        (i,j)=cell
+        krow = [-1, -1, -1, 0, 1, 1, 1, 0]
+        kcol={-1,0,1,1,1,0,-1,-1}
+        cells=set()
+        for k in range(8):
+            r=i+krow[k];c=j+kcol[k]
+            nb=(r,c)
+            if 0<=r<self.height and \
+                0<=c<self.width and \
+                nb not in self.moves_made and \
+                nb not in self.safes and \
+                nb not in self.mines:
+                cells.add(nb)
+
+        s=Sentence(cells,count)
+        self.knowledge.append(s)
+
+        # Marking Additional Cells as Mines or Safe
+        for sentence in self.knowledge:
+            for mine in sentence.known_mines():
+                self.mark_mine(mine)
+            for safe in sentence.known_safes():
+                self.mark_safe(safe)
+
+        # take out the common nodes and subtract the counts
+        for s1 in self.knowledge:
+            for s2 in self.knowledge:
+                if s1!=s2:  
+                    if s2.cells<=s1.cells:
+                        new_cells=s1.cells-s2.cells
+                        new_count=s1.count-s2.count
+                        new_sent=Sentence(new_cells,new_count)
+                        if new_sent not in self.knowledge:
+                            self.knowledge.append(new_sent)
+
+        # raise NotImplementedError
 
     def make_safe_move(self):
         """
