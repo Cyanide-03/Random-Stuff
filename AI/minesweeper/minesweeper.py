@@ -1,7 +1,6 @@
 import itertools
 import random
 
-
 class Minesweeper():
     """
     Minesweeper game representation
@@ -126,7 +125,7 @@ class Sentence():
         """
         if cell in self.cells:
             self.cells.remove(cell)
-            self.count-=1
+            self.count=max(0,self.count-1)
         # raise NotImplementedError
 
     def mark_safe(self, cell):
@@ -197,7 +196,7 @@ class MinesweeperAI():
 
         (i,j)=cell
         krow = [-1, -1, -1, 0, 1, 1, 1, 0]
-        kcol={-1,0,1,1,1,0,-1,-1}
+        kcol=[-1,0,1,1,1,0,-1,-1]
         cells=set()
         for k in range(8):
             r=i+krow[k];c=j+kcol[k]
@@ -209,27 +208,45 @@ class MinesweeperAI():
                 nb not in self.mines:
                 cells.add(nb)
 
+        # If the nearby cells include already known mines
+        for nb in cells:
+            if nb in self.mines:
+                count-=1
+                cells-=nb
+            
         s=Sentence(cells,count)
-        self.knowledge.append(s)
+        if s not in self.knowledge:
+            self.knowledge.append(s) 
 
-        # Marking Additional Cells as Mines or Safe
-        for sentence in self.knowledge:
-            for mine in sentence.known_mines():
-                self.mark_mine(mine)
-            for safe in sentence.known_safes():
-                self.mark_safe(safe)
+        changed=True
+        while(changed):
+            changed=False
 
-        # take out the common nodes and subtract the counts
-        for s1 in self.knowledge:
-            for s2 in self.knowledge:
-                if s1!=s2:  
-                    if s2.cells<=s1.cells:
-                        new_cells=s1.cells-s2.cells
-                        new_count=s1.count-s2.count
-                        new_sent=Sentence(new_cells,new_count)
-                        if new_sent not in self.knowledge:
-                            self.knowledge.append(new_sent)
-
+            # Marking Additional Cells as Mines or Safe
+            for sentence in self.knowledge:
+                for mine in sentence.known_mines():
+                    if mine not in self.mines:
+                        self.mark_mine(mine)
+                        changed=True
+                for safe in sentence.known_safes():
+                    if safe not in self.safes:
+                        self.mark_safe(safe)
+                        changed=True
+            
+            # take out the common nodes and subtract the counts
+            new_sentences=[]
+            for s1 in self.knowledge:
+                for s2 in self.knowledge:
+                    if s1!=s2:  
+                        if s2.cells<=s1.cells:
+                            new_cells=s1.cells-s2.cells
+                            new_count=s1.count-s2.count
+                            if new_cells:
+                                new_sent=Sentence(new_cells,new_count)
+                                if new_sent not in self.knowledge and new_sent not in new_sentences:
+                                    new_sentences.append(new_sent)
+                                    changed=True
+            self.knowledge.extend(new_sentences)
         # raise NotImplementedError
 
     def make_safe_move(self):
@@ -241,7 +258,18 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        raise NotImplementedError
+        for sentence in self.knowledge:
+            for safe in sentence.known_safes():
+                if safe not in self.moves_made:
+                    return safe
+        
+        for safe in self.safes:
+            if safe not in self.moves_made:
+                return safe
+        
+        return None
+
+        # raise NotImplementedError
 
     def make_random_move(self):
         """
@@ -250,4 +278,15 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
-        raise NotImplementedError
+        filtered_cells=[]
+        for i in range(self.height):
+            for j in range(self.width):
+                cell=(i,j)
+                if cell not in self.moves_made and cell not in self.mines:
+                    filtered_cells.append(cell)
+
+        if not filtered_cells:
+            return None
+        return random.choice(filtered_cells)
+
+        # raise NotImplementedError
