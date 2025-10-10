@@ -137,6 +137,7 @@ class Sentence():
             self.cells.remove(cell)
         # raise NotImplementedError
 
+
 class MinesweeperAI():
     """
     Minesweeper game player
@@ -195,24 +196,19 @@ class MinesweeperAI():
         self.mark_safe(cell)
 
         (i,j)=cell
-        krow = [-1, -1, -1, 0, 1, 1, 1, 0]
+        krow=[-1,-1,-1,0,1,1,1,0]
         kcol=[-1,0,1,1,1,0,-1,-1]
         cells=set()
         for k in range(8):
             r=i+krow[k];c=j+kcol[k]
             nb=(r,c)
-            if 0<=r<self.height and \
-                0<=c<self.width and \
-                nb not in self.moves_made and \
-                nb not in self.safes and \
-                nb not in self.mines:
+            if 0<=r<self.height and 0<=c<self.width and nb not in self.moves_made:   
                 cells.add(nb)
 
-        # If the nearby cells include already known mines
-        for nb in cells:
-            if nb in self.mines:
-                count-=1
-                cells-=nb
+        known_mines_nbr=len(cells & self.mines)
+        count-=known_mines_nbr
+
+        cells-=self.safes-self.mines
             
         s=Sentence(cells,count)
         if s not in self.knowledge:
@@ -223,12 +219,12 @@ class MinesweeperAI():
             changed=False
 
             # Marking Additional Cells as Mines or Safe
-            for sentence in self.knowledge:
-                for mine in sentence.known_mines():
+            for sentence in self.knowledge.copy():
+                for mine in sentence.known_mines().copy():
                     if mine not in self.mines:
                         self.mark_mine(mine)
                         changed=True
-                for safe in sentence.known_safes():
+                for safe in sentence.known_safes().copy():
                     if safe not in self.safes:
                         self.mark_safe(safe)
                         changed=True
@@ -238,15 +234,18 @@ class MinesweeperAI():
             for s1 in self.knowledge:
                 for s2 in self.knowledge:
                     if s1!=s2:  
-                        if s2.cells<=s1.cells:
+                        if s2.cells.issubset(s1.cells):
                             new_cells=s1.cells-s2.cells
                             new_count=s1.count-s2.count
-                            if new_cells:
+                            if new_cells and 0<=new_count<=len(new_cells):
                                 new_sent=Sentence(new_cells,new_count)
                                 if new_sent not in self.knowledge and new_sent not in new_sentences:
                                     new_sentences.append(new_sent)
                                     changed=True
-            self.knowledge.extend(new_sentences)
+            if new_sentences:
+                self.knowledge.extend(new_sentences)
+
+        self.knowledge = [s for s in self.knowledge if len(s.cells) > 0]
         # raise NotImplementedError
 
     def make_safe_move(self):
