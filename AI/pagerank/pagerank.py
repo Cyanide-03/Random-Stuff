@@ -70,9 +70,28 @@ def sample_pagerank(corpus, damping_factor=DAMPING, n=SAMPLES):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    # start from a random page and then using transition model get the probs 
-    # and then using those sample another page 
-    raise NotImplementedError
+    # start from a random page and then using "transition model" get the probs 
+    # and then using those "sample" another page. Repeat this for "n" samples and 
+    # then check the number of times each page appears that would be its rank 
+
+    pages=list(corpus.keys())
+    curr_state=random.choices(pages)
+    num_times={page:0 for page in corpus}
+    num_times[curr_state]+=1
+
+    for _ in range(n-1):
+        probs=transition_model(corpus,curr_state,damping_factor)
+        next_state=random.choices(pages,list(probs.values()))[0]
+        curr_state=next_state
+        num_times[next_state]+=1
+    
+    pageranks={}
+    for page,count in num_times.items():
+        pageranks[page]=count/n
+
+    return pageranks
+
+    # raise NotImplementedError
 
 
 def iterate_pagerank(corpus, damping_factor=DAMPING):
