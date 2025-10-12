@@ -4,7 +4,7 @@ import re
 import sys
 
 DAMPING = 0.85
-SAMPLES = 10000
+SAMPLES = 100000
 
 def crawl(directory):
     """
@@ -60,7 +60,6 @@ def transition_model(corpus, curr_page, damping_factor=DAMPING):
     return probs
     # raise NotImplementedError
 
-
 def sample_pagerank(corpus, damping_factor=DAMPING, n=SAMPLES):
     """
     Return PageRank values for each page by sampling `n` pages
@@ -75,7 +74,7 @@ def sample_pagerank(corpus, damping_factor=DAMPING, n=SAMPLES):
     # then check the number of times each page appears that would be its rank 
 
     pages=list(corpus.keys())
-    curr_state=random.choices(pages)
+    curr_state=random.choices(pages)[0]
     num_times={page:0 for page in corpus}
     num_times[curr_state]+=1
 
@@ -93,7 +92,6 @@ def sample_pagerank(corpus, damping_factor=DAMPING, n=SAMPLES):
 
     # raise NotImplementedError
 
-
 def iterate_pagerank(corpus, damping_factor=DAMPING):
     """
     Return PageRank values for each page by iteratively updating
@@ -103,8 +101,41 @@ def iterate_pagerank(corpus, damping_factor=DAMPING):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    # Earlier sampling method was a markov chain based random surfer but in this 
+    # we will use an itertaive method for calculating page ranks.
+    # We start by assuming rank of every page as 1/N and then recursively calculating 
+    # the new pagerank values using previous ones using the formula. 
+    # The idea is that this value will eventually converge upto some threshold.
 
+    N=len(corpus)
+    pageranks={page:1/N for page in corpus}
+
+    undamped_prob=(1-damping_factor)/N
+    changed=True
+    while(changed):
+        changed=False
+        new_ranks=pageranks.copy()
+        for page in corpus:
+            parent_pages=[p for p in corpus if page in corpus[p]]
+            rank_sum=0
+            for parent in parent_pages:
+                num_links=len(corpus[parent])
+                if num_links==0:
+                    num_links=N
+                rank_sum+=pageranks[parent]/num_links
+
+            new_rank=undamped_prob+damping_factor*rank_sum
+            
+            if abs(pageranks[page]-new_rank)>0.001:
+                changed=True
+            
+            new_ranks[page]=new_rank
+    
+        pageranks=new_ranks
+
+    return pageranks
+
+    # raise NotImplementedError
 
 def main():
     if len(sys.argv) != 2:
