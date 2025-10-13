@@ -127,6 +127,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
 
         joint_prob*=person_prob
 
+    return joint_prob
     # raise NotImplementedError
 
 
@@ -138,7 +139,11 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     the person is in `have_gene` and `have_trait`, respectively.
     """
     for person in probabilities:
-        
+        gene_count=get_gene_count(person,one_gene,two_genes)
+        has_trait=person in have_trait
+
+        probabilities[person]["gene"][gene_count]+=p
+        probabilities[person]["trait"][has_trait]+=p
 
     # raise NotImplementedError
 
@@ -148,7 +153,16 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    raise NotImplementedError
+    for person in probabilities:
+        total_gene = sum(probabilities[person]["gene"].values())
+        for gene_count in probabilities[person]["gene"]:
+            probabilities[person]["gene"][gene_count]/=total_gene
+
+        total_trait = sum(probabilities[person]["trait"].values())
+        for trait in probabilities[person]["trait"]:
+            probabilities[person]["trait"][trait]/=total_trait
+
+    # raise NotImplementedError
 
 def main():
 
