@@ -11,3 +11,10 @@ AI/minesweeper/requirements.txt
 AI/minesweeper/assets/
 AI/pagerank/corpus*
 AI/heredity/data/*
+AI/crossword/assets/fonts/OpenSans-Regular.ttf
+AI/crossword/data/structure0.txt
+AI/crossword/data/structure1.txt
+AI/crossword/data/structure2.txt
+AI/crossword/data/words0.txt
+AI/crossword/data/words1.txt
+AI/crossword/data/words2.txt

@@ -102,7 +102,7 @@ def iterate_pagerank(corpus, damping_factor=DAMPING):
     PageRank values should sum to 1.
     """
     # Earlier sampling method was a markov chain based random surfer but in this 
-    # we will use an itertaive method for calculating page ranks.
+    # we will use an iterative method for calculating page ranks.
     # We start by assuming rank of every page as 1/N and then recursively calculating 
     # the new pagerank values using previous ones using the formula. 
     # The idea is that this value will eventually converge upto some threshold.
