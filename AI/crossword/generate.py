@@ -152,21 +152,50 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
-        raise NotImplementedError
+        if arcs is None:
+            arcs=[]
+            for var in self.crossword.variables:
+                for nbr in self.crossword.neighbors(var):
+                    arcs.append((var,nbr))
+
+        while arcs:
+            x,y=arcs.pop(0)
+            if self.revise(x,y):
+                if len(self.domains[x]==0):
+                    return False
+                for z in self.domains[x]-{y}:
+                    arcs.append((z,x))
+
+        return True
+        # raise NotImplementedError
 
     def assignment_complete(self, assignment):
         """
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        raise NotImplementedError
+        for var in assignment:
+            if assignment[var] is None:
+                return False
+            
+        return True
+        # raise NotImplementedError
 
     def consistent(self, assignment):
         """
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
-        raise NotImplementedError
+        for var in assignment:
+            # check length (unary constraint)
+            if var.length!=len(assignment[var]):
+                return False
+            
+            # check for conflict with nbrs (binary constraints)
+            for nbr in self.crossword.neighbors(var):
+                
+
+        # raise NotImplementedError
 
     def order_domain_values(self, var, assignment):
         """
