@@ -105,7 +105,7 @@ class CrosswordCreator():
                 if len(word)!=var.length:
                     to_remove.add(word)
 
-        self.domains[var]-=to_remove
+            self.domains[var]-=to_remove
         # raise NotImplementedError
 
     def revise(self, x, y):
@@ -135,10 +135,12 @@ class CrosswordCreator():
             # if no supporting word_y found, mark for removal
             if not has_support:
                 to_remove.add(word_x)
-                revised=True
 
         # actually remove invalid words
-        self.domains[x]-=to_remove
+        if to_remove:
+            self.domains[x]-=to_remove
+            revised=True
+
         return revised
     
         # raise NotImplementedError
@@ -161,9 +163,9 @@ class CrosswordCreator():
         while arcs:
             x,y=arcs.pop(0)
             if self.revise(x,y):
-                if len(self.domains[x]==0):
+                if len(self.domains[x])==0:
                     return False
-                for z in self.domains[x]-{y}:
+                for z in self.crossword.neighbors(x)-{y}:
                     arcs.append((z,x))
 
         return True
@@ -174,8 +176,8 @@ class CrosswordCreator():
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        for var in assignment:
-            if assignment[var] is None:
+        for var in self.crossword.variables:
+            if var not in assignment or assignment[var] is None:
                 return False
             
         return True
@@ -186,6 +188,7 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
+        unique_words=set()
         for var in assignment:
             # check length (unary constraint)
             if var.length!=len(assignment[var]):
@@ -193,8 +196,19 @@ class CrosswordCreator():
             
             # check for conflict with nbrs (binary constraints)
             for nbr in self.crossword.neighbors(var):
-                
-
+                overlap=self.crossword.overlaps[var,nbr]
+                if overlap is not None:
+                    i,j=overlap
+                    if nbr in assignment:
+                        if assignment[var][i]!=assignment[nbr][j]:
+                            return False
+                        
+            # check for uniqueness
+            if assignment[var] in unique_words:
+                return False
+            unique_words.add(assignment[var])
+                        
+        return True
         # raise NotImplementedError
 
     def order_domain_values(self, var, assignment):
@@ -204,7 +218,8 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        raise NotImplementedError
+        return self.domains[var]
+        # raise NotImplementedError
 
     def select_unassigned_variable(self, assignment):
         """
@@ -214,7 +229,10 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        raise NotImplementedError
+        for var in assignment:
+            if assignment[var] is None:
+                return var
+        # raise NotImplementedError
 
     def backtrack(self, assignment):
         """
