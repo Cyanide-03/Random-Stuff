@@ -1,3 +1,4 @@
+from collections import deque
 import sys
 
 from crossword import *
@@ -160,13 +161,14 @@ class CrosswordCreator():
                 for nbr in self.crossword.neighbors(var):
                     arcs.append((var,nbr))
 
-        while arcs:
-            x,y=arcs.pop(0)
+        queue=deque(arcs)
+        while queue:
+            x,y=queue.popleft()
             if self.revise(x,y):
                 if len(self.domains[x])==0:
                     return False
                 for z in self.crossword.neighbors(x)-{y}:
-                    arcs.append((z,x))
+                    queue.append((z,x))
 
         return True
         # raise NotImplementedError
@@ -191,7 +193,7 @@ class CrosswordCreator():
         unique_words=set()
         for var in assignment:
             # check length (unary constraint)
-            if var.length!=len(assignment[var]):
+            if assignment[var] is None or var.length!=len(assignment[var]):
                 return False
             
             # check for conflict with nbrs (binary constraints)
@@ -200,7 +202,7 @@ class CrosswordCreator():
                 if overlap is not None:
                     i,j=overlap
                     if nbr in assignment:
-                        if assignment[var][i]!=assignment[nbr][j]:
+                        if assignment[nbr] is None or assignment[var][i]!=assignment[nbr][j]:
                             return False
                         
             # check for uniqueness
@@ -218,7 +220,9 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        return self.domains[var]
+        # return self.domains[var] # this is not an efficient solution, 
+                                # in this I am just returning the domain as is
+
         # raise NotImplementedError
 
     def select_unassigned_variable(self, assignment):
@@ -229,9 +233,13 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        for var in assignment:
-            if assignment[var] is None:
-                return var
+        # this is not an efficient solution I just randomly picked the first 
+        # unassigned variable without any heuristics
+        # for var in self.crossword.variables:
+        #     if var not in assignment or assignment[var] is None:
+        #         return var
+
+        
         # raise NotImplementedError
 
     def backtrack(self, assignment):
@@ -243,11 +251,25 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        raise NotImplementedError
+        if self.assignment_complete(assignment):
+            return assignment
+        
+        var=self.select_unassigned_variable(assignment)
+        for value in self.order_domain_values(var,assignment):
+            assignment[var]=value
+            if self.consistent(assignment):
+                result=self.backtrack(assignment)
+                if result is not None:
+                    return result
+
+            assignment[var]=None
+
+        return None
+                
+        # raise NotImplementedError
 
 
 def main():
-
     # Check usage
     if len(sys.argv) not in [3, 4]:
         sys.exit("Usage: python generate.py structure words [output]")
