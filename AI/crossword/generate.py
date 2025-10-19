@@ -220,8 +220,29 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        # return self.domains[var] # this is not an efficient solution, 
-                                # in this I am just returning the domain as is
+        # ! This is not an efficient solution I just return the domain as is
+        # return self.domains[var] 
+
+        # ! Least Constraining Values
+        lcv={}
+        for value in self.domains[var]:
+            count=0
+            for nbr in self.crossword.neighbors(var):
+                overlap=self.crossword.overlaps[var,nbr]
+                if overlap is not None and nbr not in assignment:
+                    i,j=overlap
+                    for nbr_value in self.domains[nbr]:
+                        # if the nbr letter at j does not match with current letter at i then 
+                        # it enforces that nbr cannot take that value so count increases 
+                        if value[i]!=nbr_value[j]:
+                            count+=1
+
+            lcv[value]=count
+
+        # We return the one domain value of var which constraint the nbr variables the least
+        sorted_lcv=sorted(lcv,key=lambda val : lcv[val])
+
+        return sorted_lcv
 
         # raise NotImplementedError
 
@@ -244,14 +265,14 @@ class CrosswordCreator():
 
         # Minimum remaining values heuristic
         min_domain=min(len(self.domains[var]) for var in unassigned)
-        candidates=[var for var in unassigned if len(self.domains[var])==min_domain]
+        mrv_candidates=[var for var in unassigned if len(self.domains[var])==min_domain]
 
-        if len(candidates)==1:
-            return candidates[0]
+        if len(mrv_candidates)==1:
+            return mrv_candidates[0]
         
         # Degree heuristic
-        max_degree=max(len(self.crossword.neighbors(var)) for var in candidates)
-        sl_candidates=[var for var in unassigned if len(self.crossword.neighbors(var))==max_degree]
+        max_degree=max(len(self.crossword.neighbors(var)) for var in mrv_candidates)
+        sl_candidates=[var for var in mrv_candidates if len(self.crossword.neighbors(var))==max_degree]
 
         return sl_candidates[0]
 
@@ -273,9 +294,14 @@ class CrosswordCreator():
         for value in self.order_domain_values(var,assignment):
             assignment[var]=value
             if self.consistent(assignment):
-                result=self.backtrack(assignment)
-                if result is not None:
-                    return result
+                saved_domains = {v: self.domains[v].copy() for v in self.domains}
+
+                if self.ac3([(nbr,var) for nbr in self.crossword.neighbors(var)]):
+                    result=self.backtrack(assignment)
+                    if result is not None:
+                        return result
+                
+                self.domains = saved_domains
 
             assignment[var]=None
 
