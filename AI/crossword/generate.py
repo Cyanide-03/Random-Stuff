@@ -213,7 +213,7 @@ class CrosswordCreator():
         return True
         # raise NotImplementedError
 
-    def order_domain_values(self, var, assignment):
+    def order_domain_values(self, var, assignment): # !
         """
         Return a list of values in the domain of `var`, in order by
         the number of values they rule out for neighboring variables.
@@ -233,13 +233,28 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        # this is not an efficient solution I just randomly picked the first 
-        # unassigned variable without any heuristics
+        # ! This is not an efficient solution I just randomly picked the first 
+        # ! unassigned variable without any heuristics
         # for var in self.crossword.variables:
         #     if var not in assignment or assignment[var] is None:
         #         return var
 
+        # ! Now this solution uses the heuristics to efficiently select the unassigned variable
+        unassigned = [v for v in self.crossword.variables if v not in assignment or assignment[v] is None]
+
+        # Minimum remaining values heuristic
+        min_domain=min(len(self.domains[var]) for var in unassigned)
+        candidates=[var for var in unassigned if len(self.domains[var])==min_domain]
+
+        if len(candidates)==1:
+            return candidates[0]
         
+        # Degree heuristic
+        max_degree=max(len(self.crossword.neighbors(var)) for var in candidates)
+        sl_candidates=[var for var in unassigned if len(self.crossword.neighbors(var))==max_degree]
+
+        return sl_candidates[0]
+
         # raise NotImplementedError
 
     def backtrack(self, assignment):
