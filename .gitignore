@@ -19,3 +19,5 @@ AI/crossword/data/words0.txt
 AI/crossword/data/words1.txt
 AI/crossword/data/words2.txt
 Arduino/SimpleWebServerWiFi/arduino_secrets.h
+Arduino/libraries/*
+!Arduino/libraries/obstacle_avoider
