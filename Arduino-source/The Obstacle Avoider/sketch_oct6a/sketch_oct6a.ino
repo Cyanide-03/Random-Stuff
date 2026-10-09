@@ -46,6 +46,36 @@ void printData(int angle, int distance) {
   Serial.print(".");
 }
 
+void pivoturn(int targetangle, int speed){
+  // turndelay factor has to be calculated by testing
+  int turnDelay=abs(targetangle)*12;
+  if (targetAngle > 0) {
+        // Turn Right: Hold left motor still, run right motor forward
+        analogWrite(ENA_PIN, 0);
+        digitalWrite(IN1_PIN, HIGH); 
+        digitalWrite(IN2_PIN, LOW); // Left motor STOP
+
+        analogWrite(ENB_PIN, speed);
+        digitalWrite(IN3_PIN, HIGH);
+        digitalWrite(IN4_PIN, LOW); // Right motor FORWARD
+    } else {
+        // Turn Left: Hold right motor still, run left motor forward
+        analogWrite(ENA_PIN, speed);
+        digitalWrite(IN1_PIN, HIGH); 
+        digitalWrite(IN2_PIN, LOW); // Left motor FORWARD
+
+        analogWrite(ENB_PIN, 0);
+        digitalWrite(IN3_PIN, HIGH);
+        digitalWrite(IN4_PIN, LOW); // Right motor STOP
+    }
+
+    delay(turnDelay);
+
+    // Stop motors
+    digitalWrite(IN1_PIN, LOW); digitalWrite(IN2_PIN, LOW);
+    digitalWrite(IN3_PIN, LOW); digitalWrite(IN4_PIN, LOW);
+}
+
 void setup() {
   Serial.begin(115200);
   pinMode(trigPin, OUTPUT);
@@ -81,16 +111,18 @@ void loop() {
     printData(angle, distance);    
   } 
 
-  findBestPath(scanDistances,10);
+  int bestAngle=findBestPath(scanDistances,10);
+
+  pivoturn(bestAngle,150);
 
   // 1. Move both motors FORWARD at medium speed (value between 0 and 255)
-  analogWrite(ENA_PIN, 255); 
-  analogWrite(ENB_PIN, 255); 
+  analogWrite(ENA_PIN, 200); 
+  analogWrite(ENB_PIN, 200); 
   
   digitalWrite(IN1_PIN, HIGH);
   digitalWrite(IN2_PIN, LOW);
   digitalWrite(IN3_PIN, HIGH);
   digitalWrite(IN4_PIN, LOW);
-  delay(3000); // Run forward for 3 seconds
+  delay(1500); // Run forward for 1.5 seconds
 
 }
