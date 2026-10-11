@@ -1,7 +1,7 @@
 #include <Servo.h>
 Servo sv;
 
-int sv_pin=9;
+int sv_pin=6;
 int angle;
  
 void setup() {
