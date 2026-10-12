@@ -19,11 +19,21 @@ int findBestPath(int distances[],int threshold,float robot_width){
             validangles.push_back(i);
         }
     }
+
+    // ----------------- if(!validangles.empty()) ------------------
     int start=validangles[0];
     int end=validangles[0];
+
+    // if no gap is found then choose the direction with max span
+    float max_fallback_span=-1.0;
+    int fallback_start=-1;
+    int fallback_end=-1;
+
+    // if the gap is greater than robot width and span is largest then choose that direction
     float max_span=-1.0;
     int best_start=-1;
     int best_end=-1;
+
     // Find consecutive angles in validangles and then the max width
     for (int i=0;i<validangles.size()-1;i++){
         if(validangles[i+1]-validangles[i]==1){
@@ -34,6 +44,12 @@ int findBestPath(int distances[],int threshold,float robot_width){
             float r1=distances[start];
             float r2=distances[end];
             float w=sqrt((r1*r1)+(r2*r2)-(2*r1*r2*cos(current_span)));
+            if(current_span>max_span){
+                fallback_start=start;
+                fallback_end=end;
+                max_fallback_span=current_span;
+            }
+
             if(w>robot_width && current_span>max_span){
                 best_start=start;
                 best_end=end;
@@ -52,11 +68,15 @@ int findBestPath(int distances[],int threshold,float robot_width){
         best_end=end;
         max_span=current_span;
     }
+
+    if(best_start==-1){
+        return (fallback_start+fallback_end)/2;
+    }
     return (best_start+best_end)/2;
 }
 
 // int main(){
-//     float distances[180];
+//     int distances[180];
 //     for (int i=0;i<180;i++){
 //         distances[i]=rand()%100;
 //     }
